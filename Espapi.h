@@ -1,11 +1,9 @@
 #ifndef Espapi_h
 #define Espapi_h
 
-#include <StandardCplusplus.h>
+#include <vector>
 #include <ArduinoJson.h>
 #include <ESP8266WiFi.h>
-#include <vector>
-#include <iterator>
 #include <string.h>
 
 #include "esp_wifi_types.h"
@@ -17,7 +15,7 @@ extern "C" {
     int wifi_send_pkt_freedom(uint8 * buf, int len, bool sys_seq);
 }
 
-using namespace std;
+//using namespace std;
 
 #define ATTEMPTS 50
 #define ETH_MAC_LEN 6

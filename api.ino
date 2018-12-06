@@ -5,7 +5,7 @@
 #define SNIFF "sniff"
 #define PING "ping"
 #define DEFAULT_CHANNEL 11
-#define PASSWD "James Brown Da Vinci Code"
+#define PASSWD "Dan Brown Da Vinci Code"
 #define SSID "D. Arthur"//"Lambs to the cosmic slaughter"
 
 Espapi api;
