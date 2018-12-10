@@ -24,6 +24,8 @@ extern "C" {
 class Espapi {
     public :
         //Espapi();
+        void startAP();
+        void stopAP();
         void setMode(WiFiMode_t mode);
         void amap(bool async, bool hidden);
         void send(uint8_t* packet);
@@ -31,7 +33,15 @@ class Espapi {
         void sniff();
         void handler(uint8_t* buf, uint16_t len);
         const char * wifi_sniffer_packet_type2str(wifi_promiscuous_pkt_type_t type);
+
         vector<String> writeQueue;
+        boolean sniffing = false;
+
+        char* ssid;
+        char* passwd;
+        int channel;
+        boolean hidden;
+
 };
 
 #endif

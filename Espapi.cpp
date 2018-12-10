@@ -5,8 +5,30 @@ void Espapi::setMode(WiFiMode_t mode) {
     WiFi.disconnect();
 }
 
+void Espapi::startAP() {
+    startAP(ssid, passwd, channel, hidden);
+}
+
+void Espapi::startAP(char* _ssid, char* _passwd, int _channel, boolean _hidden) {
+    WiFi.softAP(_ssid, _passwd, _channel, _hidden);
+
+    ssid = _ssid;
+    passwd = _passwd;
+    channel = _channel;
+    hidden = _hidden;
+}
+
+void Espapi::stopAP() {
+    wifi_promiscuous_enable(0);
+
+    WiFi.persistent(false);
+    WiFi.disconnect(true);
+
+    wifi_set_opmode(STATION_MODE);
+}
+
 void Espapi::amap(bool async, bool hidden) {
-    setMode(WIFI_STA);
+    wifi_set_opmode(STATION_MODE);
 
     StaticJsonBuffer<2048> jsonBuffer;
 
@@ -39,6 +61,7 @@ void Espapi::amap(bool async, bool hidden) {
 void Espapi::send(uint8_t *packet) {
     int packetSize = (int)(sizeof(packet) / sizeof(*packet));
     bool sent = wifi_send_pkt_freedom(packet, packetSize, 0);
+    
     for (int i = 0; i < ATTEMPTS && !sent; i++)
         sent = wifi_send_pkt_freedom(packet, packetSize, 0) == 0;
 }
@@ -48,10 +71,14 @@ void Espapi::setChannel(int ch) {
 }
 
 void Espapi::sniff() {
-    wifi_set_opmode(STATION_MODE);
-    wifi_promiscuous_enable(0);
-    WiFi.disconnect();
-    wifi_promiscuous_enable(1);
+    stopAp();
+    wifi_promiscuous_enable(false);
+
+    if (sniffing) { 
+        wifi_promiscuous_enable(true);
+    }
+
+    startAP();
 }
 
 void Espapi::handler(uint8_t* buf, uint16_t len) {

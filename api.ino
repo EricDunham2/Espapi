@@ -8,18 +8,25 @@
 #define PASSWD "Dan Brown Da Vinci Code"
 #define SSID "D. Arthur"//"Lambs to the cosmic slaughter"
 
+//IPAddress apIP(192, 168, 4, 1);
+//IPAddress netMsk(255, 255, 255, 0);
 Espapi api;
 
 void setup() {
     Serial.begin(115200);
+
     pinMode(LED_BUILTIN, OUTPUT);
-    digitalWrite(13, LOW);        // sets the digital pin 13 off
-    digitalWrite(13, HIGH);       // sets the digital pin 13 on
-    WiFi.softAP(SSID, PASSWD);
+    digitalWrite(13, HIGH);
+
+    WiFi.mode(WIFI_OFF);
+    wifi_set_opmode(STATION_MODE);
     wifi_set_promiscuous_rx_cb([](uint8_t* buf, uint16_t len){ api.handler(buf, len); });
-    digitalWrite(13, LOW);        // sets the digital pin 13 off
+    api.setChannel(DEFAULT_CHANNEL);
+
+
+    //WiFi.softAPConfig(apIP, apIP, netMsk);
+    ap.startAP(SSID, PASSWD, 11, false);
     delay(100);
-    
 }
 
 void loop() {
@@ -30,23 +37,25 @@ void loop() {
 
         char * pch;
         pch = strtok(command, " ");
-        send(pch, command);
+        if (pch != NULL) { send(pch, command); }
 
         while (api.writeQueue.size() > 0) {
+          String output = api.writeQueue.at(0);
+          api.writeQueue.erase(ap.writeQueue.front, ap.writeQueue.front + 1);
+
           Serial.print("\x02");
-          String output = api.writeQueue.at(api.writeQueue.size() - 1);
-          api.writeQueue.pop_back();
           Serial.print(output);
           Serial.print("\x03");
-        }     
+        }
     }
 }
 
-
 void send(char* cmd, char* args) {
+
     int channel = DEFAULT_CHANNEL;
     uint8_t* data;
     char* arg;
+    boolean stop = false;
 
     //No cmd provided
     if (!cmd || cmd == "") { return; }
@@ -62,7 +71,10 @@ void send(char* cmd, char* args) {
             channel = (int)strtok(NULL, " ");
         } else if (strcmp(arg, "-d") == 0) {
             data = (uint8_t*)strtok(NULL, " ");
+        } else if (strcmp(arg, "-s") == 0) {
+            stop = true;
         }
+
         arg = strtok(NULL, " ");
     }
 
@@ -74,6 +86,7 @@ void send(char* cmd, char* args) {
     } else if (strcmp(cmd, AMAP) == 0) {
         api.amap(false, true);
     } else if (strcmp(cmd, SNIFF) == 0) {
+        if (stop) { api.sniff}
         api.sniff();
     } else if (strcmp(cmd, SEND) == 0) {
         api.send(data);
