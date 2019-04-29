@@ -31,8 +31,7 @@ class Espapi {
         void send(uint8_t* packet);
         void setChannel(int ch);
         void sniff();
-        void handler(uint8_t* buf, uint16_t len);
-        const char * wifi_sniffer_packet_type2str(wifi_promiscuous_pkt_type_t type);
+        void handler(uint8_t *buffer, uint16_t length);
 
         vector<String> writeQueue;
         boolean sniffing = false;

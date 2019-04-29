@@ -16,58 +16,45 @@
 #ifndef __ESP_WIFI_TYPES_H__
 #define __ESP_WIFI_TYPES_H__
 
-typedef struct {
-    signed rssi:8;            /**< signal intensity of packet */
-    unsigned rate:5;          /**< data rate */
-    unsigned :1;              /**< reserve */
-    unsigned sig_mode:2;      /**< 0:is not 11n packet; 1:is 11n packet */
-    unsigned :16;             /**< reserve */
-    unsigned mcs:7;           /**< if is 11n packet, shows the modulation(range from 0 to 76) */
-    unsigned cwb:1;           /**< if is 11n packet, shows if is HT40 packet or not */
-    unsigned :16;             /**< reserve */
-    unsigned smoothing:1;     /**< reserve */
-    unsigned not_sounding:1;  /**< reserve */
-    unsigned :1;              /**< reserve */
-    unsigned aggregation:1;   /**< Aggregation */
-    unsigned stbc:2;          /**< STBC */
-    unsigned fec_coding:1;    /**< Flag is set for 11n packets which are LDPC */
-    unsigned sgi:1;           /**< SGI */
-    unsigned noise_floor:8;   /**< noise floor */
-    unsigned ampdu_cnt:8;     /**< ampdu cnt */
-    unsigned channel:4;       /**< which channel this packet in */
-    unsigned :12;             /**< reserve */
-    unsigned timestamp:32;    /**< timestamp */
-    unsigned :32;             /**< reserve */
-    unsigned :32;             /**< reserve */
-    unsigned sig_len:12;      /**< length of packet */
-    unsigned :12;             /**< reserve */
-    unsigned rx_state:8;      /**< rx state */
-} wifi_pkt_rx_ctrl_t;
+#define DATA_LENGTH           112
 
-typedef struct {
-    wifi_pkt_rx_ctrl_t rx_ctrl; /**< metadata header */
-    uint8_t payload[0];       /**< Data or management payload. Length of payload is described by rx_ctrl.sig_len. Type of content determined by packet type argument of callback. */
-} wifi_promiscuous_pkt_t;
+#define TYPE_MANAGEMENT       0x00
+#define TYPE_CONTROL          0x01
+#define TYPE_DATA             0x02
+#define SUBTYPE_PROBE_REQUEST 0x04
 
-typedef enum {
-    WIFI_PKT_MGMT,  /**< Management frame, indicates 'buf' argument is wifi_promiscuous_pkt_t */
-    WIFI_PKT_DATA,  /**< Data frame, indiciates 'buf' argument is wifi_promiscuous_pkt_t */
-    WIFI_PKT_MISC,  /**< Other type, such as MIMO etc. 'buf' argument is wifi_promiscuous_pkt_t but the payload is zero length. */
-} wifi_promiscuous_pkt_type_t;
+struct RxControl {
+	signed rssi:8; // signal intensity of packet
+	unsigned rate:4;
+	unsigned is_group:1;
+	unsigned:1;
+	unsigned sig_mode:2; // 0:is 11n packet; 1:is not 11n packet;
+	unsigned legacy_length:12; // if not 11n packet, shows length of packet.
+	unsigned damatch0:1;
+	unsigned damatch1:1;
+	unsigned bssidmatch0:1;
+	unsigned bssidmatch1:1;
+	unsigned MCS:7; // if is 11n packet, shows the modulation and code used (range from 0 to 76)
+	unsigned CWB:1; // if is 11n packet, shows if is HT40 packet or not
+	unsigned HT_length:16;// if is 11n packet, shows length of packet.
+	unsigned Smoothing:1;
+	unsigned Not_Sounding:1;
+	unsigned:1;
+	unsigned Aggregation:1;
+	unsigned STBC:2;
+	unsigned FEC_CODING:1; // if is 11n packet, shows if is LDPC packet or not.
+	unsigned SGI:1;
+	unsigned rxend_state:8;
+	unsigned ampdu_cnt:8;
+	unsigned channel:4; //which channel this packet in.
+	unsigned:12;
+};
 
-typedef struct {
-	unsigned frame_ctrl:16;
-	unsigned duration_id:16;
-	uint8_t addr1[6]; /* receiver address */
-	uint8_t addr2[6]; /* sender address */
-	uint8_t addr3[6]; /* filtering address */
-	unsigned sequence_ctrl:16;
-	uint8_t addr4[6]; /* optional */
-} wifi_ieee80211_mac_hdr_t;
-
-typedef struct {
-	wifi_ieee80211_mac_hdr_t hdr;
-	uint8_t payload[0]; /* network data ended with 4 bytes csum (CRC32) */
-} wifi_ieee80211_packet_t;
+struct SnifferPacket {
+	struct RxControl rx_ctrl;
+	uint8_t data[DATA_LENGTH];
+	uint16_t cnt;
+	uint16_t len;
+};
 
 #endif /* __ESP_WIFI_TYPES_H__ */

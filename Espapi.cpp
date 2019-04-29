@@ -57,7 +57,6 @@ void Espapi::amap(bool async, bool hidden) {
     writeQueue.push_back(out);
 }
 
-
 void Espapi::send(uint8_t *packet) {
     int packetSize = (int)(sizeof(packet) / sizeof(*packet));
     bool sent = wifi_send_pkt_freedom(packet, packetSize, 0);
@@ -81,83 +80,52 @@ void Espapi::sniff() {
     startAP();
 }
 
-void Espapi::handler(uint8_t* buf, uint16_t len) {
-    //wifi_promiscuous_pkt_type_t type = (wifi_promiscuous_pkt_type_t *)len;
-
-    //if (type != WIFI_PKT_MGMT) { return; }
+void Espapi::handler(uint8_t *buffer, uint16_t length) {
     StaticJsonBuffer<2048> jsonBuffer;
-
-    const wifi_promiscuous_pkt_t *ppkt = (wifi_promiscuous_pkt_t *)buf;
-    const wifi_ieee80211_packet_t *ipkt = (wifi_ieee80211_packet_t *)ppkt->payload;
-    const wifi_ieee80211_mac_hdr_t *hdr = &ipkt->hdr;
-
-    unsigned rssi = ppkt->rx_ctrl.rssi;
-    int channel = ppkt->rx_ctrl.channel;
-    String pkt_type = "MGMT";//wifi_sniffer_packet_type2str(type);
-    char addr1[ETH_MAC_LEN];
-    char addr2[ETH_MAC_LEN];
-    char addr3[ETH_MAC_LEN];
-
-    sprintf(
-        addr1,
-        MAC_FMT,
-        hdr->addr1[0],
-        hdr->addr1[1],
-        hdr->addr1[2],
-        hdr->addr1[3],
-        hdr->addr1[4],
-        hdr->addr1[5]
-    );
-
-    sprintf(
-        addr2,
-        MAC_FMT,
-        hdr->addr2[0],
-        hdr->addr2[1],
-        hdr->addr2[2],
-        hdr->addr2[3],
-        hdr->addr2[4],
-        hdr->addr2[5]
-    );
-
-    sprintf(
-        addr3,
-        MAC_FMT,
-        hdr->addr3[0],
-        hdr->addr3[1],
-        hdr->addr3[2],
-        hdr->addr3[3],
-        hdr->addr3[4],
-        hdr->addr3[5]
-    );
-
     JsonObject &pktJson = jsonBuffer.createObject();
 
+    struct SnifferPacket *snifferPacket = (struct SnifferPacket*) buffer;
+
+    unsigned int frameControl = ((unsigned int)snifferPacket->data[1] << 8) + snifferPacket->data[0];
+    
+    uint8_t frameType = (frameControl & 0b0000000000001100) >> 2;
+    uint8_t frameSubType = (frameControl & 0b0000000011110000) >> 4;
+
+	if (frameType != TYPE_MANAGEMENT || frameSubType != SUBTYPE_PROBE_REQUEST)
+        return;
+    
+    char srcAddr[18] = "00:00:00:00:00:00";
+    sprintf(srcAddr, "%02x:%02x:%02x:%02x:%02x:%02x", snifferPacket->data[10], snifferPacket->data[11], snifferPacket->data[12], snifferPacket->data[13], snifferPacket->data[14], snifferPacket->data[15]);
+    
+    char dstAddr[18] = "00:00:00:00:00:00";
+    sprintf(dstAddr, "%02x:%02x:%02x:%02x:%02x:%02x", snifferPacket->data[4], snifferPacket->data[5], snifferPacket->data[6], snifferPacket->data[7], snifferPacket->data[8], snifferPacket->data[9]);
+
+    char bssidAddr[18] = "00:00:00:00:00:00";
+    sprintf(dstAddr, "%02x:%02x:%02x:%02x:%02x:%02x", snifferPacket->data[16], snifferPacket->data[17], snifferPacket->data[18], snifferPacket->data[19], snifferPacket->data[20], snifferPacket->data[21]);
+
+	uint8_t SSID_length = snifferPacket->data[25];
+   	char ssid[33];
+    ssid[0] = '\0';
+
+	for(uint16_t i = 26; i < DATA_LENGTH && i < 26 + SSID_length; i++) {
+		sprintf(ssid, "%s%c", ssid, snifferPacket->data[i]);
+	}
+
+    int rssi = snifferPacket->rx_ctrl.rssi;
+    int channel = wifi_get_channel();
+
     pktJson["data_type"] = "packet";
-    pktJson["pkt_type"] = pkt_type;
     pktJson["rssi"] = rssi;
     pktJson["channel"] = channel;
-    pktJson["addr1"] = addr1;
-    pktJson["addr2"] = addr2;
-    pktJson["addr3"] = addr3;
+    pktJson["pkt_type"] = "MGMT";
+    pktJson["src"] = srcAddr;
+    pktJson["dst"] = dstAddr;
+    pktJson["bssid"] = bssidAddr;
+    pktJson["ssid"] = ssid;
 
     String out;
     pktJson.printTo(out);
     writeQueue.push_back(out);
-}
-
-
-const char * Espapi::wifi_sniffer_packet_type2str(wifi_promiscuous_pkt_type_t type)
-{
-    switch(type) {
-        case WIFI_PKT_MGMT: 
-            return "MGMT";
-        case WIFI_PKT_DATA: 
-            return "DATA";
-        default:
-            case WIFI_PKT_MISC: 
-                return "MISC";
-    }
 }
 
 /*void connectToWifi(char *ssid, char *password) {
