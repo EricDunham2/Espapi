@@ -2,6 +2,7 @@
 #define Espapi_h
 
 #include <vector>
+#include <Arduino.h>
 #include <ArduinoJson.h>
 #include <ESP8266WiFi.h>
 #include <string.h>
@@ -15,32 +16,45 @@ extern "C" {
     int wifi_send_pkt_freedom(uint8 * buf, int len, bool sys_seq);
 }
 
-//using namespace std;
-
 #define ATTEMPTS 50
 #define ETH_MAC_LEN 6
 #define MAC_FMT "%02x:%02x:%02x:%02x:%02x:%02x"
 
 class Espapi {
-    public :
-        //Espapi();
-        void startAP();
-        void stopAP();
-        void setMode(WiFiMode_t mode);
-        void amap(bool async, bool hidden);
-        void send(uint8_t* packet);
-        void setChannel(int ch);
-        void sniff();
-        void handler(uint8_t *buffer, uint16_t length);
-
-        vector<String> writeQueue;
-        boolean sniffing = false;
-
-        char* ssid;
-        char* passwd;
+    public:
+        std::vector<String> writeQueue;
+        std::vector<uint8_t*> readQueue;
+        //Accesspoint Properties
+        const char* ssid;
+        const char* passwd;
         int channel;
         boolean hidden;
 
+        //Api state peroperties
+        boolean accesspointScanning = false;
+        boolean stationScanning = false;
+        unsigned long scanInterval = 5000;
+        unsigned long scanStartTime;
+
+        //Methods
+        //Accesspoint functions
+        void startAP();
+        void startAP(const char* _ssid, const char* _passwd, int _channel, boolean _hidden);
+        void stopAP();
+
+        void setAccesspointScanning(boolean isScanning);
+        void setStationScanning(boolean isScanning);
+        void setChannel(int ch);
+        void setMode(WiFiMode_t mode);
+        void setScanInterval(unsigned long interval);
+        void handler(uint8_t* buf, uint16_t len);
+
+        void update();
+
+        void amap(bool async, bool hidden);
+        void send(uint8_t* packet);
+        void startPacketSniff();
+        void stopPacketSniff();
 };
 
 #endif
