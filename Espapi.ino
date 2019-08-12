@@ -22,8 +22,8 @@
 
 //Defaults
 #define DEFAULT_CHANNEL 11
-#define DEFAULT_PASSWD "Dan Brown Da Vinci Code"
-#define DEFAULT_SSID "D. Arthur"//"Lambs to the cosmic slaughter"
+#define DEFAULT_PASSWD "Mortison D"
+#define DEFAULT_SSID "Lans To The Cosmic Slaughter"//"Lambs to the cosmic slaughter"
 
 IPAddress apIP(192, 168, 4, 1);
 IPAddress netMsk(255, 255, 255, 0);
