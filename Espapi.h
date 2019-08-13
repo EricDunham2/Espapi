@@ -1,11 +1,12 @@
+
 #ifndef Espapi_h
 #define Espapi_h
 
-#include <vector>
 #include <Arduino.h>
 #include <ArduinoJson.h>
 #include <ESP8266WiFi.h>
 #include <string.h>
+#include <Vector.h>
 
 #include "esp_wifi_types.h"
 extern "C" {
@@ -22,8 +23,8 @@ extern "C" {
 
 class Espapi {
     public:
-        std::vector<String> writeQueue;
-        std::vector<uint8_t*> readQueue;
+        Vector<String> writeQueue;
+        Vector<uint8_t*> readQueue;
         //Accesspoint Properties
         const char* ssid;
         const char* passwd;

@@ -1,8 +1,6 @@
 #include "Espapi.h"
-#include <Arduino.h>
+#include <Vector.h>
 #include <string>
-
-
 //Commands
 #define PING "ping"
 #define SETUP "setup"
@@ -42,8 +40,8 @@ using namespace std;
 
 Espapi api;
 
-std::vector<String> split(char* str, char* delimiter) {
-  std::vector<String> tokens;
+Vector<String> split(char* str, char* delimiter) {
+  Vector<String> tokens;
   char * token;
 
   token = strtok(str, delimiter);
@@ -91,21 +89,21 @@ void loop() {
 void send(char* data) {
  
   char delimS[2] = " ";
-  std::vector<String> parts = split(data, delimS);
+  Vector<String> parts = split(data, delimS);
   
   String strCmd = parts.at(0);
 
   char command[strCmd.length() + 1];
   strcpy(command, strCmd.c_str());
 
-  parts.erase(parts.front(), parts.front() + 1);
+  parts.remove(0);
 
-  while (parts.length() > 0) {
+  while (parts.size() > 0) {
     String part = parts.at(0);
-    parts.erase(parts.front(), parts.front() + 1);
+    parts.remove(0);
 
   char delimS[2] = " ";
-  std::vector<String> subParts = split(data, delimS);
+  Vector<String> subParts = split(data, delimS);
 
     String argStr = subParts.at(0);
 
@@ -143,7 +141,7 @@ void send(char* data) {
     api.stopAP();
     api.startAP(ssid.c_str(), password.c_str(), channel, apHidden);
   } else if (strcmp(command, SEND) == 0) {
-    if (buffer.size() == 0) {
+    if ((int)sizeof(buffer) == 0) {
       api.writeQueue.push_back("\x02{type:\"info\",data:\"Packet data must be sent for this command\n send -buffer=[byte array]\"}\x03");
       return;
     }
@@ -158,7 +156,7 @@ void send(char* data) {
 void printOutput() {
   while (api.writeQueue.size() > 0) {
     String output = api.writeQueue.at(0);
-    api.writeQueue.erase(api.writeQueue.front(), api.writeQueue.front() + 1);
+    api.writeQueue.remove(0);
 
     Serial.print("\x02");
     Serial.print(output);
@@ -167,7 +165,7 @@ void printOutput() {
 }
 
 bool toBool(String boolStr) {
-  boolStr = boolStr.toLowerCase();
+  boolStr.toLowerCase();
   
 
   if (strcmp(boolStr.c_str(), "false") == 0) {

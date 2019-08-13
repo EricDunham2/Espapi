@@ -1,5 +1,5 @@
 #include "Espapi.h"
-
+#include <Vector.h>
 /************************************
  *      Acesspoint Functions       *
  ***********************************/
@@ -166,7 +166,7 @@ void Espapi::update() {
 
     while (readQueue.size() > 0 && (scanStartTime - millis()) > scanInterval) {
         uint8_t *packet = readQueue.at(0);
-        readQueue.erase(readQueue.begin(), readQueue.begin() + 1);
+        readQueue.remove(0);
 
         send(packet);
     }
