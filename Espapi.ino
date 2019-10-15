@@ -9,14 +9,14 @@
 #define SNIFF "sniff"
 
 //Arguments
-#define ASYNC "async"
-#define HIDDEN "hidden"
-#define HOP "hop"
-#define CHANNEL "channel"
-#define INTERVAL "interval"
-#define BUFFER "buffer"
-#define PASSWORD "password"
-#define SSID "ssid"
+#define ASYNC "-async"
+#define HIDDEN "-hidden"
+#define HOP "-hop"
+#define CHANNEL "-channel"
+#define INTERVAL "-interval"
+#define BUFFER "-buffer"
+#define PASSWORD "-password"
+#define SSID "-ssid"
 
 //Defaults
 #define DEFAULT_CHANNEL 11
@@ -81,6 +81,7 @@ void loop() {
   digitalWrite(13, HIGH);
 
   char data[256];
+  //send -interval=100 -channel=2 -buffer=c00000000050ba7395593c5ab457aefd3c5ab457aefd00000100
   data[Serial.readBytesUntil('\n', data, 256)] = '\0';
 
   send(data);
@@ -90,20 +91,43 @@ void send(char* data) {
  
   char delimS[2] = " ";
   Vector<String> parts = split(data, delimS);
-  
+  /*
+    send
+    -interval=100
+    -channel=2
+    -buffer=c00000000050ba7395593c5ab457aefd3c5ab457aefd00000100
+  */
+
   String strCmd = parts.at(0);
+  //send
 
   char command[strCmd.length() + 1];
   strcpy(command, strCmd.c_str());
 
   parts.remove(0);
 
+  /*
+    -interval=100
+    -channel=2
+    -buffer=c00000000050ba7395593c5ab457aefd3c5ab457aefd00000100
+  */
+
   while (parts.size() > 0) {
     String part = parts.at(0);
-    parts.remove(0);
+    //-interval=100
 
-  char delimS[2] = " ";
-  Vector<String> subParts = split(data, delimS);
+    parts.remove(0);
+    /*
+      -channel=2
+      -buffer=c00000000050ba7395593c5ab457aefd3c5ab457aefd00000100
+    */
+
+    char delimE[2] = "=";
+    Vector<String> subParts = split(data, delimE);
+    /*
+      -interval
+      100
+    */
 
     String argStr = subParts.at(0);
 
