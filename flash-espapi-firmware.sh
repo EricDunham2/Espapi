@@ -31,7 +31,7 @@ check_network() {
 
 # download firmware if required
 
-if [ -f ./Espapi.bin ]; then
+if [ -f ./Espapi.ino.nodemcu.bin ]; then
     newline
     echo "Espapi firmware found!"
 else
@@ -59,7 +59,7 @@ newline
 python ./flash/espwrite.py
 sleep 1
 echo "Writing flash"
-esptool.py -p /dev/ttyAMA0 -b 115200 write_flash --flash_size=8m 0 Espapi.bin
+esptool.py -p /dev/ttyAMA0 -b 115200 write_flash --flash_size=8m 0 Espapi.ino.nodemcu.bin
 
 # resetting chip
 
